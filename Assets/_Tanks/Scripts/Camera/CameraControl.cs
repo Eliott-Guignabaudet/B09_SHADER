@@ -1,7 +1,10 @@
-﻿using Cinemachine;
+﻿using System.Reflection;
+using Cinemachine;
 using DG.Tweening;
 using NaughtyAttributes;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace Tanks.Complete
 {
@@ -37,8 +40,80 @@ namespace Tanks.Complete
             // center of this, meaning placing this object at the desired position won't make the camera aim at that desired position.
             // This offset correct that so the camera actually aim at the desired position
             m_AimToRig = transform.position - aimTArget;
+            TestGetMaterial();
+            
         }
 
+
+        private void TestGetMaterial()
+        {
+            if (!m_Camera.TryGetComponent<UniversalAdditionalCameraData>(out var camData))
+            {
+                Debug.LogError("Caméra sans UniversalAdditionalCameraData.");
+                return;
+            }
+            var urpAsset = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            if (urpAsset == null)
+            {
+                Debug.LogError("Pas d'URP pipeline asset actif.");
+                return;
+            }
+
+            // Récupère le champ m_RendererDataList (non public)
+            var rendererListField = typeof(UniversalRenderPipelineAsset).GetField(
+                "m_RendererDataList",
+                BindingFlags.NonPublic | BindingFlags.Instance
+            );
+
+            var rendererDataList = rendererListField?.GetValue(urpAsset) as ScriptableRendererData[];
+            if (rendererDataList == null || rendererDataList.Length == 0)
+            {
+                Debug.LogError("RendererDataList introuvable ou vide.");
+                return;
+            }
+            // Récupération de l'index du renderer via reflection
+            FieldInfo rendererIndexField = typeof(UniversalAdditionalCameraData)
+                .GetField("m_RendererIndex", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (rendererIndexField == null)
+            {
+                Debug.LogError("Impossible de trouver le champ m_RendererIndex.");
+                return;
+            }
+
+            int rendererIndex = (int)rendererIndexField.GetValue(camData);
+            if (rendererIndex < 0 || rendererIndex >= rendererDataList.Length)
+            {
+                Debug.LogWarning("Index de renderer invalide, on prend l'index 0.");
+                rendererIndex = 0;
+            }
+
+            var rendererData = rendererDataList[rendererIndex] as UniversalRendererData;
+            if (rendererData == null)
+            {
+                Debug.LogError("Le renderer n'est pas un ForwardRendererData.");
+                return;
+            }
+
+            foreach (var feature in rendererData.rendererFeatures)
+            {
+                if (feature is FullScreenPassRendererFeature fullScreenFeature)
+                {
+                    var matField = typeof(FullScreenPassRendererFeature)
+                        .GetField("m_Material", BindingFlags.NonPublic | BindingFlags.Instance);
+                    
+                    var mat = fullScreenFeature.passMaterial;
+                    if (mat != null)
+                    {
+                        Debug.Log($"Matériel trouvé : {mat.name}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("Material est null.");
+                    }
+                }
+            }
+        }
 
         private void FixedUpdate ()
         {
