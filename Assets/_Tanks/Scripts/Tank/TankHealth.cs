@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using DG.Tweening;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,6 +26,8 @@ namespace Tanks.Complete
         private bool m_Dead;                                // Has the tank been reduced beyond zero health yet?
         private float m_ShieldValue;                        // Percentage of reduced damage when the tank has a shield.
         private bool m_IsInvincible;                        // Is the tank invincible in this moment?
+        
+        public event Action OnTakeDamage = null; // Event to notify when the tank takes damage. 
 
         private void Awake ()
         {
@@ -68,6 +72,8 @@ namespace Tanks.Complete
 
                 // Change the UI elements appropriately.
                 SetHealthUI ();
+                // Call the OnTakeDamage event to notify subscribers that the tank has taken damage.
+                OnTakeDamage?.Invoke();
 
                 // If the current health is at or below zero and it has not yet been registered, call OnDeath.
                 if (m_CurrentHealth <= 0f && !m_Dead)
