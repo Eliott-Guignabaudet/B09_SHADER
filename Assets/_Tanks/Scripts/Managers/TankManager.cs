@@ -81,6 +81,8 @@ namespace Tanks.Complete
                     {
                         // change its color to the player color
                         renderer.materials[j].color = m_PlayerColor;
+                        renderer.materials[j].SetColor("_Albedo", m_PlayerColor);
+
                     }
                 }
             }
