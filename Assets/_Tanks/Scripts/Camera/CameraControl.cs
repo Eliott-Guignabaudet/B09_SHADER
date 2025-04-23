@@ -1,4 +1,7 @@
-﻿using UnityEngine;
+﻿using Cinemachine;
+using DG.Tweening;
+using NaughtyAttributes;
+using UnityEngine;
 
 namespace Tanks.Complete
 {
@@ -9,8 +12,11 @@ namespace Tanks.Complete
         public float m_MinSize = 6.5f;                  // The smallest orthographic size the camera can be.
         public Transform[] m_Targets;                   // All the targets the camera needs to encompass.
 
-
-        private Camera m_Camera;                        // Used for referencing the camera.
+        [SerializeField]
+        private Camera m_Camera;      // Used for referencing the camera.
+        [SerializeField]
+        private CinemachineVirtualCamera m_VirtualCamera; // Used for referencing the virtual camera.achineVirtualCamera
+        
         private float m_ZoomSpeed;                      // Reference speed for the smooth damping of the orthographic size.
         private Vector3 m_MoveVelocity;                 // Reference velocity for the smooth damping of the position.
         private Vector3 m_DesiredPosition;              // The position the camera is moving towards.
@@ -19,8 +25,6 @@ namespace Tanks.Complete
 
         private void Awake ()
         {
-            m_Camera = GetComponentInChildren<Camera> ();
-            
             // plane in which the camera rig is in
             Plane p = new Plane(Vector3.up, transform.position);
             Ray r = new Ray(m_Camera.transform.position, m_Camera.transform.forward);
@@ -89,7 +93,8 @@ namespace Tanks.Complete
         {
             // Find the required size based on the desired position and smoothly transition to that size.
             float requiredSize = FindRequiredSize();
-            m_Camera.orthographicSize = Mathf.SmoothDamp (m_Camera.orthographicSize, requiredSize, ref m_ZoomSpeed, m_DampTime);
+            //m_Camera.orthographicSize = Mathf.SmoothDamp (m_Camera.orthographicSize, requiredSize, ref m_ZoomSpeed, m_DampTime);
+            m_VirtualCamera.m_Lens.OrthographicSize = Mathf.SmoothDamp (m_VirtualCamera.m_Lens.OrthographicSize, requiredSize, ref m_ZoomSpeed, m_DampTime);
         }
 
 
@@ -140,7 +145,19 @@ namespace Tanks.Complete
             transform.position = m_DesiredPosition;
 
             // Find and set the required size of the camera.
-            m_Camera.orthographicSize = FindRequiredSize ();
+            //m_Camera.orthographicSize = FindRequiredSize ();
+            m_VirtualCamera.m_Lens.OrthographicSize = FindRequiredSize ();
+        }
+        
+        [Button]
+        public void OnHitTank()
+        {
+            var multiChannelPerlin = m_VirtualCamera.GetCinemachineComponent<CinemachineBasicMultiChannelPerlin>();
+            DOTween.To(x => multiChannelPerlin.m_AmplitudeGain = x, multiChannelPerlin.m_AmplitudeGain, 1f, 0.2f)
+                .OnComplete(() =>
+                {
+                    DOTween.To(x => multiChannelPerlin.m_AmplitudeGain = x, multiChannelPerlin.m_AmplitudeGain, 0f, 1f);
+                });
         }
     }
 }

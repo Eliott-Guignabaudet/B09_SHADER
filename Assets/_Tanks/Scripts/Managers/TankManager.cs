@@ -30,10 +30,12 @@ namespace Tanks.Complete
 
         private TankMovement m_Movement;                        // Reference to tank's movement script, used to disable and enable control.
         private TankShooting m_Shooting;                        // Reference to tank's shooting script, used to disable and enable control.
+        private TankHealth m_Health;                          // Reference to the tank's health script, used to disable and enable control.
         private GameObject m_CanvasGameObject;                  // Used to disable the world space UI during the Starting and Ending phases of each round.
         
         private TankAI m_AI;                                    // The Tank AI script that let a tank be a bot controlled by the computer
         private InputUser m_InputUser;                          // The Input user link to that tank. Input user identify a single player in the Input system
+        public event Action OnTankTakeDamage; // Event to notify when the tank takes damage.
         
         public void Setup (GameManager manager)
         {
@@ -41,6 +43,7 @@ namespace Tanks.Complete
             m_Movement = m_Instance.GetComponent<TankMovement> ();
             m_Shooting = m_Instance.GetComponent<TankShooting> ();
             m_AI = m_Instance.GetComponent<TankAI> ();
+            m_Health = m_Instance.GetComponent<TankHealth> ();
             m_CanvasGameObject = m_Instance.GetComponentInChildren<Canvas> ().gameObject;
 
             // Assign the Input User of that Tank to the script controlling input system binding, so the move/fire actions
@@ -51,7 +54,7 @@ namespace Tanks.Complete
             // Toggle computer controlled on the movement/firing if this tank was tagged as being computer controlled
             m_Movement.m_IsComputerControlled = m_ComputerControlled;
             m_Shooting.m_IsComputerControlled = m_ComputerControlled;
-            
+            m_Health.OnTakeDamage += OnTankTakeDamage;
             // Pass along the player number and control index to the movement components. See the TankMovement script for
             // hose those are used to decided which input the movement respond to.
             m_Movement.m_PlayerNumber = m_PlayerNumber;

@@ -73,6 +73,11 @@ namespace Tanks.Complete
             {
                 Debug.LogError("You need to assign 4 tank prefab in the GameManager!");
             }
+
+            foreach (var tankManager in m_SpawnPoints)
+            {
+                tankManager.OnTankTakeDamage += (() => m_CameraControl.OnHitTank());
+            }
         }
 
         void GameStart()
