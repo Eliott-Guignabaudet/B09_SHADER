@@ -43,11 +43,20 @@ namespace Tanks.Complete
             m_HasShield = false;
             m_ShieldValue = 0;
             m_IsInvincible = false;
-
+            ResetCutoffHeightRenderers();
             // Update the health slider's value and color.
             SetHealthUI();
         }
 
+        private void ResetCutoffHeightRenderers()
+        {
+            // Reset the cutoff height of the tank mesh renderers to 0 (not dissolved)
+            foreach (var meshRenderer in m_TankMeshRenderers)
+            {
+                Material tankMaterial = meshRenderer.material;
+                tankMaterial.SetFloat("_CutoffHeight", 1f); // Set the dissolve amount to 0 (not dissolved)
+            }
+        }
 
         public void TakeDamage (float amount)
         {
@@ -133,6 +142,7 @@ namespace Tanks.Complete
         private void ApplyDissolveEffect()
         {
             var sequence = DOTween.Sequence();
+            
             // Get the material of the tank mesh renderer
             foreach (var meshRenderer in m_TankMeshRenderers)
             {
