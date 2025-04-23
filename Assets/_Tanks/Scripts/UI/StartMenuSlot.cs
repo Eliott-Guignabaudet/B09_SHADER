@@ -151,6 +151,7 @@ namespace Tanks.Complete
                     {
                         // Set its color to the slot color
                         renderer.materials[j].color = m_SlotColor;
+                        renderer.materials[j].SetColor("_Albedo", m_SlotColor);
                     }
                 }
             }
