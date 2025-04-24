@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using NaughtyAttributes;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -78,6 +81,7 @@ namespace Tanks.Complete
             {
                 tankManager.OnTankTakeDamage += (() => m_CameraControl.OnHitTank());
             }
+            
         }
 
         void GameStart()
@@ -91,6 +95,26 @@ namespace Tanks.Complete
 
             // Once the tanks have been created and the camera is using them as targets, start the game.
             StartCoroutine (GameLoop ());
+        }
+
+
+
+        [Button]
+        public void TestTankCorner()
+        {
+            List<Vector3> tankPoints = new List<Vector3>();
+            List<Color> tankColors = new List<Color>();
+            foreach (var tankManager in m_SpawnPoints)
+            {
+                if (!tankManager.m_Instance)
+                {
+                    continue;
+                }
+                tankPoints.Add(tankManager.m_Instance.transform.position);
+                tankColors.Add(tankManager.m_PlayerColor);
+            }
+            
+            m_CameraControl.AssociateTankPointWithScreenCorner(tankPoints.ToArray(), tankColors.ToArray());
         }
 
         void ChangeGameState(GameState newState)
@@ -222,6 +246,7 @@ namespace Tanks.Complete
             while (!OneTankLeft())
             {
                 // ... return on the next frame.
+                TestTankCorner();
                 yield return null;
             }
         }
