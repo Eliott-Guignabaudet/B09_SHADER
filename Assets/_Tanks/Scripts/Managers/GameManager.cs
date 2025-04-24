@@ -99,15 +99,15 @@ namespace Tanks.Complete
 
 
 
-        [Button]
-        public void TestTankCorner()
+        public void SetColorTankCorner()
         {
             List<Vector3> tankPoints = new List<Vector3>();
             List<Color> tankColors = new List<Color>();
             foreach (var tankManager in m_SpawnPoints)
             {
-                if (!tankManager.m_Instance)
+                if (!tankManager.m_Instance || !tankManager.m_Instance.activeSelf)
                 {
+                    // If the tank is not active, we skip it
                     continue;
                 }
                 tankPoints.Add(tankManager.m_Instance.transform.position);
@@ -221,7 +221,7 @@ namespace Tanks.Complete
             // As soon as the round starts reset the tanks and make sure they can't move.
             ResetAllTanks ();
             DisableTankControl ();
-
+            SetColorTankCorner();
             // Snap the camera's zoom and position to something appropriate for the reset tanks.
             m_CameraControl.SetStartPositionAndSize ();
 
@@ -246,9 +246,10 @@ namespace Tanks.Complete
             while (!OneTankLeft())
             {
                 // ... return on the next frame.
-                TestTankCorner();
+                SetColorTankCorner();
                 yield return null;
             }
+            SetColorTankCorner();
         }
 
 
