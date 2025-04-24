@@ -75,6 +75,8 @@ namespace Tanks.Complete
                 // Call the OnTakeDamage event to notify subscribers that the tank has taken damage.
                 OnTakeDamage?.Invoke();
 
+                ApplyDamageEffect();
+
                 // If the current health is at or below zero and it has not yet been registered, call OnDeath.
                 if (m_CurrentHealth <= 0f && !m_Dead)
                 {
@@ -143,6 +145,28 @@ namespace Tanks.Complete
             ApplyDissolveEffect();
             
             // Turn the tank off.
+        }
+
+        private void ApplyDamageEffect()
+        {
+            var sequence = DOTween.Sequence();
+
+            // Get the material of the tank mesh renderer
+            foreach (var meshRenderer in m_TankMeshRenderers)
+            {
+                Material tankMaterial = meshRenderer.material;
+                var doFloat = tankMaterial.DOFloat(0f, "_AnimationTime", 1.5f).SetEase(Ease.OutCubic); // Animate the damage effect
+                sequence.Join(doFloat);
+            }
+
+            sequence.OnComplete(() =>
+            {
+                foreach (var meshRenderer in m_TankMeshRenderers)
+                {
+                    Material tankMaterial = meshRenderer.material;
+                    tankMaterial.SetFloat("_AnimationTime", 0.8f);
+                }
+            });
         }
 
         private void ApplyDissolveEffect()
