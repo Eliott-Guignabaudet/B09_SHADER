@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using NaughtyAttributes;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -78,6 +81,7 @@ namespace Tanks.Complete
             {
                 tankManager.OnTankTakeDamage += (() => m_CameraControl.OnHitTank());
             }
+            
         }
 
         void GameStart()
@@ -91,6 +95,26 @@ namespace Tanks.Complete
 
             // Once the tanks have been created and the camera is using them as targets, start the game.
             StartCoroutine (GameLoop ());
+        }
+
+
+
+        public void SetColorTankCorner()
+        {
+            List<Vector3> tankPoints = new List<Vector3>();
+            List<Color> tankColors = new List<Color>();
+            foreach (var tankManager in m_SpawnPoints)
+            {
+                if (!tankManager.m_Instance || !tankManager.m_Instance.activeSelf)
+                {
+                    // If the tank is not active, we skip it
+                    continue;
+                }
+                tankPoints.Add(tankManager.m_Instance.transform.position);
+                tankColors.Add(tankManager.m_PlayerColor);
+            }
+            
+            m_CameraControl.AssociateTankPointWithScreenCorner(tankPoints.ToArray(), tankColors.ToArray());
         }
 
         void ChangeGameState(GameState newState)
@@ -197,7 +221,7 @@ namespace Tanks.Complete
             // As soon as the round starts reset the tanks and make sure they can't move.
             ResetAllTanks ();
             DisableTankControl ();
-
+            SetColorTankCorner();
             // Snap the camera's zoom and position to something appropriate for the reset tanks.
             m_CameraControl.SetStartPositionAndSize ();
 
@@ -222,8 +246,10 @@ namespace Tanks.Complete
             while (!OneTankLeft())
             {
                 // ... return on the next frame.
+                SetColorTankCorner();
                 yield return null;
             }
+            SetColorTankCorner();
         }
 
 
