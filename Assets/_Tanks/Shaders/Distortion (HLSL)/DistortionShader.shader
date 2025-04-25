@@ -11,6 +11,7 @@ Shader "Custom/DistortionShader"
 
     SubShader
     {
+        // Making the shader transparent and blend with the background
         Tags { "RenderType" = "Transparent" "Queue" = "Transparent" }
         LOD 100
         ZWrite Off
@@ -28,13 +29,13 @@ Shader "Custom/DistortionShader"
 
             struct Attributes
             {
-                float4 positionOS : POSITION;
+                float4 positionOS : POSITION;   // Position of the GameObject
                 float2 uv : TEXCOORD0;
             };
 
             struct Varyings
             {
-                float4 positionHCS : SV_POSITION;
+                float4 positionHCS : SV_POSITION;   // Position of the screen
                 float2 uv : TEXCOORD0;
                 float4 screenUV : TEXCOORD1;
             };
@@ -49,24 +50,25 @@ Shader "Custom/DistortionShader"
             Varyings vert(Attributes IN)
             {
                 Varyings OUT;
-                OUT.positionHCS = TransformObjectToHClip(IN.positionOS);
+                OUT.positionHCS = TransformObjectToHClip(IN.positionOS);    // Transform position from Object to Screen 
                 OUT.uv = IN.uv;
-                OUT.screenUV = ComputeScreenPos(OUT.positionHCS);
+                OUT.screenUV = ComputeScreenPos(OUT.positionHCS);   // UV used to read _CameraOpaqueTexture
                 return OUT;
             }
 
             float4 frag(Varyings IN) : SV_Target
             {
+                // Normalize UV for _CameraOpaqueTexture
                 float2 screenUV = IN.screenUV.xy / IN.screenUV.w;
 
-                // Animation de noise
+                // Calculate UV affected by the noise texture and other properties
                 float2 noiseUV = IN.uv * _NoiseScale + float2(_Time.y * _TimeSpeed, _Time.y * _TimeSpeed);
                 float2 noise = tex2D(_NoiseTex, noiseUV).rg * 2.0 - 1.0;
 
-                // Appliquer la déformation
+                // Apply distortion offset on screen UV
                 float2 distortedUV = screenUV + noise * _DistortionStrength;
 
-                // Échantillonner la texture de fond
+                // Return background texture with calculated distortion
                 float4 distortedColor = tex2D(_CameraOpaqueTexture, distortedUV);
                 distortedColor.a = _Opacity;
 
